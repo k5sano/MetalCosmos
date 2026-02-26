@@ -43,6 +43,10 @@ public:
 
     juce::AudioProcessorValueTreeState apvts;
 
+    // Parameter pointers (for fast access)
+    std::atomic<float>* clipMode = nullptr;
+    std::atomic<float>* outSat = nullptr;
+
 private:
     // DSP modules
     MT2GainStage mGainStage;

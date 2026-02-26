@@ -46,6 +46,34 @@ namespace MT2Params {
             juce::ParameterID{"eq_high", 1}, "High",
             juce::NormalisableRange<float>(0.0f, 1.0f, 0.001f), 0.5f));
 
+        // Clip Mode: Stage1/Stage2 の歪み方式 (0=Diode, 1=Tanh, 2=Atan, 3=Hard, 4=Asymmetric, 5=Foldback)
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"clip_mode", 1},
+            "Clip Mode",
+            juce::NormalisableRange<float>(0.0f, 5.0f, 1.0f),
+            0.0f,
+            juce::AudioParameterFloatAttributes{}
+                .withStringFromValueFunction([](float v, int) {
+                    const char* names[] = {
+                        "Diode", "Tanh", "Atan", "Hard", "Asymmetric", "Foldback"
+                    };
+                    return juce::String(names[std::clamp((int)v, 0, 5)]);
+                })
+        ));
+
+        // Output Saturation: 最終段 tanh の効き（0=OFF, 1=フル）
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"out_sat", 1},
+            "Saturation",
+            juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f),
+            0.3f,
+            juce::AudioParameterFloatAttributes{}
+                .withStringFromValueFunction([](float v, int) {
+                    if (v < 0.01f) return juce::String("OFF");
+                    return juce::String((int)(v * 100)) + "%";
+                })
+        ));
+
         return { params.begin(), params.end() };
     }
 

@@ -22,6 +22,9 @@ public:
     /** Set feedback resistor value (ohms) */
     void setRf(double rf);
 
+    /** Get current gain value */
+    double getGain() const { return mGain; }
+
 private:
     double mIs = 2.52e-9;    // Saturation current
     double mN  = 1.7;         // Ideality factor

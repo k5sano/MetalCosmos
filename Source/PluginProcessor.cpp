@@ -8,6 +8,8 @@ MT2Plugin::MT2Plugin()
           .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       apvts(*this, nullptr, "PARAMETERS", MT2Params::createLayout())
 {
+    clipMode = apvts.getRawParameterValue("clip_mode");
+    outSat = apvts.getRawParameterValue("out_sat");
 }
 
 void MT2Plugin::prepareToPlay(double sampleRate, int maxSamplesPerBlock)
@@ -85,6 +87,10 @@ void MT2Plugin::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&
     // Update gain stage gain
     mGainStage.setGain(mSmoothedGain.getNextValue());
 
+    // Set clip mode
+    int mode = (clipMode != nullptr) ? (int)clipMode->load() : 0;
+    mGainStage.setClipMode(mode);
+
     // Update EQ coefficients (once per block)
     float eqLow = eqLowParam ? eqLowParam->load() : 0.5f;
     float eqMid = eqMidParam ? eqMidParam->load() : 0.5f;
@@ -135,10 +141,8 @@ void MT2Plugin::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&
             // Tone Stack (EQ)
             double eqOut = mToneStack.processSample(gsOut);
 
-            // Output level
-            double output = eqOut * level;
-
-            mBufferDouble.getWritePointer(ch)[sample] = output;
+            // Store back (will be converted to float)
+            mBufferDouble.getWritePointer(ch)[sample] = eqOut;
         }
     }
 
@@ -146,20 +150,37 @@ void MT2Plugin::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&
     if (numChannels == 1) {
         // Mono output: use left channel only
         for (int sample = 0; sample < numSamples; ++sample) {
-            buffer.getWritePointer(0)[sample] = static_cast<float>(mBufferDouble.getReadPointer(0)[sample]);
+            float val = static_cast<float>(mBufferDouble.getReadPointer(0)[sample]);
+            buffer.getWritePointer(0)[sample] = val;
         }
     } else {
         // Stereo/multi-channel output
         for (int ch = 0; ch < juce::jmin(numChannels, 2); ++ch) {
-            std::copy(mBufferDouble.getReadPointer(ch),
-                      mBufferDouble.getReadPointer(ch) + numSamples,
-                      buffer.getWritePointer(ch));
+            for (int sample = 0; sample < numSamples; ++sample) {
+                buffer.getWritePointer(ch)[sample] = static_cast<float>(mBufferDouble.getReadPointer(ch)[sample]);
+            }
         }
         // If more than 2 channels, copy channel 1 to extra channels
         for (int ch = 2; ch < numChannels; ++ch) {
-            std::copy(mBufferDouble.getReadPointer(1),
-                      mBufferDouble.getReadPointer(1) + numSamples,
-                      buffer.getWritePointer(ch));
+            for (int sample = 0; sample < numSamples; ++sample) {
+                buffer.getWritePointer(ch)[sample] = buffer.getWritePointer(1)[sample];
+            }
+        }
+    }
+
+    // Output Saturator (final stage tanh) - after ToneStack, before output level
+    float satAmount = (outSat != nullptr) ? outSat->load() : 0.0f;
+    if (satAmount > 0.01f) {
+        double drive = 1.0 + satAmount * 3.0;  // 1.0 to 4.0 range
+        double normFactor = std::tanh(drive);
+
+        for (int ch = 0; ch < numChannels; ++ch) {
+            auto* data = buffer.getWritePointer(ch);
+            for (int i = 0; i < numSamples; ++i) {
+                double driven = static_cast<double>(data[i]) * drive;
+                double saturated = std::tanh(driven) / normFactor;
+                data[i] = static_cast<float>(saturated);
+            }
         }
     }
 }
