@@ -1,5 +1,4 @@
-```cpp
-Copy#pragma once
+#pragma once
 #include "BiquadFilter.h"
 
 class MT2ToneStack {
@@ -21,4 +20,3 @@ private:
     BiquadFilter mHighShelf;
     double mSampleRate = 44100.0;
 };
-```

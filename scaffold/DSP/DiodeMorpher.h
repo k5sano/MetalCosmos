@@ -1,5 +1,4 @@
-```cpp
-Copy#pragma once
+#pragma once
 #include <array>
 
 struct DiodeParams {
@@ -30,5 +29,3 @@ private:
         { 7.4e-9,   1.9  },  // Schottky
     }};
 };
-Copy
-```

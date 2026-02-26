@@ -1,0 +1,15 @@
+# Build directories
+build/
+cmake-build-*/
+
+# JUCE (submodule/symlink - not in repo)
+JUCE/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store

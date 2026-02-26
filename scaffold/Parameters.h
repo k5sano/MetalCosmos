@@ -1,5 +1,4 @@
-```cpp
-Copy#pragma once
+#pragma once
 #include <juce_audio_processors/juce_audio_processors.h>
 
 namespace MT2Params {
@@ -7,7 +6,7 @@ namespace MT2Params {
     inline juce::AudioProcessorValueTreeState::ParameterLayout createLayout() {
         std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
-        // --- Core ---
+        // All parameters per spec.md
         params.push_back(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"dist", 1}, "Dist",
             juce::NormalisableRange<float>(0.0f, 1.0f, 0.001f), 0.5f));
@@ -16,7 +15,6 @@ namespace MT2Params {
             juce::ParameterID{"level", 1}, "Level",
             juce::NormalisableRange<float>(0.0f, 1.0f, 0.001f), 0.5f));
 
-        // --- Diode Morphing (Feature A) ---
         params.push_back(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"diode_morph", 1}, "Diode Morph",
             juce::NormalisableRange<float>(0.0f, 1.0f, 0.001f), 0.0f));
@@ -28,7 +26,6 @@ namespace MT2Params {
             juce::ParameterID{"diode_morph_2", 1}, "Diode Morph 2",
             juce::NormalisableRange<float>(0.0f, 1.0f, 0.001f), 0.0f));
 
-        // --- EQ (Feature B) ---
         params.push_back(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"eq_low", 1}, "Low",
             juce::NormalisableRange<float>(0.0f, 1.0f, 0.001f), 0.5f));
@@ -53,5 +50,3 @@ namespace MT2Params {
     }
 
 } // namespace MT2Params
-Copy
-```

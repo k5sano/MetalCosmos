@@ -1,5 +1,4 @@
-```cpp
-Copy#pragma once
+#pragma once
 
 class OnePoleFilter {
 public:
@@ -20,4 +19,3 @@ private:
     double mB1 = 0.0;
     double mZ1 = 0.0;
 };
-```

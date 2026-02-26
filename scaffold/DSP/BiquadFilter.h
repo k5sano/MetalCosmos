@@ -1,5 +1,4 @@
-```cpp
-Copy#pragma once
+#pragma once
 #include <cmath>
 
 class BiquadFilter {
@@ -29,5 +28,3 @@ private:
     // State
     double z1 = 0.0, z2 = 0.0;
 };
-Copy
-```

@@ -1,5 +1,4 @@
-```cpp
-Copy#pragma once
+#pragma once
 #include <cmath>
 
 class DiodeFeedbackClipper {
@@ -32,5 +31,3 @@ private:
     static constexpr int    MAX_ITER = 8;
     static constexpr double TOLERANCE = 1e-7;
 };
-Copy
-```

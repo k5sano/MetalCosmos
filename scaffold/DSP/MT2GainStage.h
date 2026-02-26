@@ -1,5 +1,4 @@
-```cpp
-Copy#pragma once
+#pragma once
 #include "DiodeFeedbackClipper.h"
 #include "OnePoleFilter.h"
 
@@ -22,4 +21,3 @@ private:
     OnePoleFilter mInterstageHPF;
     OnePoleFilter mInterStageLPF;
 };
-```

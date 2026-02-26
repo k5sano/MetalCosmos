@@ -1,34 +1,34 @@
-```cpp
-Copy#pragma once
-#include <juce_audio_processors/juce_audio_processors.h>
-#include <juce_dsp/juce_dsp.h>
-#include "Parameters.h"
-#include "DSP/MT2GainStage.h"
-#include "DSP/MT2ToneStack.h"
-#include "DSP/DiodeMorpher.h"
+#pragma once
 
-class MT2Plugin : public juce::AudioProcessor {
+#include <juce_audio_processors/juce_audio_processors.h>
+#include "Parameters.h"
+
+class MT2Plugin : public juce::AudioProcessor
+{
 public:
     MT2Plugin();
-    ~MT2Plugin() override = default;
+    ~MT2Plugin() override;
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
-    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
+
+    void processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) override;
 
     juce::AudioProcessorEditor* createEditor() override;
-    bool hasEditor() const override { return true; }
+    bool hasEditor() const override;
 
-    const juce::String getName() const override { return "MetalCosmos"; }
-    bool acceptsMidi() const override { return false; }
-    bool producesMidi() const override { return false; }
-    double getTailLengthSeconds() const override { return 0.0; }
+    const juce::String getName() const override;
 
-    int getNumPrograms() override { return 1; }
-    int getCurrentProgram() override { return 0; }
-    void setCurrentProgram(int) override {}
-    const juce::String getProgramName(int) override { return {}; }
-    void changeProgramName(int, const juce::String&) override {}
+    bool acceptsMidi() const override;
+    bool producesMidi() const override;
+    bool isMidiEffect() const override;
+    double getTailLengthSeconds() const override;
+
+    int getNumPrograms() override;
+    int getCurrentProgram() override;
+    void setCurrentProgram(int index) override;
+    const juce::String getProgramName(int index) override;
+    void changeProgramName(int index, const juce::String& newName) override;
 
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
@@ -36,29 +36,7 @@ public:
     juce::AudioProcessorValueTreeState apvts;
 
 private:
-    // Parameter pointers (atomic)
-    std::atomic<float>* distParam      = nullptr;
-    std::atomic<float>* levelParam     = nullptr;
-    std::atomic<float>* diodeMorphParam  = nullptr;
-    std::atomic<float>* diodeLinkParam   = nullptr;
-    std::atomic<float>* diodeMorph2Param = nullptr;
-    std::atomic<float>* eqLowParam     = nullptr;
-    std::atomic<float>* eqMidParam     = nullptr;
-    std::atomic<float>* eqMidFreqParam = nullptr;
-    std::atomic<float>* eqMidQParam    = nullptr;
-    std::atomic<float>* eqHighParam    = nullptr;
-
-    // DSP
-    MT2GainStage mGainStage;
-    MT2ToneStack mToneStack;
-    DiodeMorpher mDiodeMorpher;
-    juce::dsp::Oversampling<double> mOversampling{2, 2,
-        juce::dsp::Oversampling<double>::filterHalfBandPolyphaseIIR, true};
-
-    // Internal double buffer for oversampled processing
-    juce::AudioBuffer<double> mDoubleBuffer;
+    juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MT2Plugin)
 };
-Copy
-```
