@@ -2,13 +2,14 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include "PluginProcessor.h"
 
-class MT2PluginEditor : public juce::AudioProcessorEditor {
+class MT2PluginEditor : public juce::AudioProcessorEditor, public juce::Timer {
 public:
     explicit MT2PluginEditor(MT2Plugin&);
-    ~MT2PluginEditor() override = default;
+    ~MT2PluginEditor() override;
 
     void paint(juce::Graphics&) override;
     void resized() override;
+    void timerCallback() override;
 
 private:
     MT2Plugin& processorRef;

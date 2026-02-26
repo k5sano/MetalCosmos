@@ -57,6 +57,9 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
     diodeMorphSlider.textFromValueFunction = diodeTextFromValue;
     diodeMorph2Slider.textFromValueFunction = diodeTextFromValue;
 
+    // Start timer for diode link functionality
+    startTimerHz(30);  // Check 30 times per second
+
     // Toggle button
     diodeLinkButton.setButtonText("Link");
     addAndMakeVisible(diodeLinkButton);
@@ -88,6 +91,33 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
     outSatAttachment    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "out_sat", outSatSlider);
 
     setSize(540, 460);
+}
+
+MT2PluginEditor::~MT2PluginEditor()
+{
+    stopTimer();
+}
+
+void MT2PluginEditor::timerCallback()
+{
+    // Check if link is enabled
+    auto* diodeLinkParam = apvts.getParameter("diode_link");
+    if (!diodeLinkParam) return;
+
+    bool isLinked = diodeLinkParam->getValue() > 0.5f;
+
+    if (isLinked) {
+        // Sync diode2 to diode1
+        auto* diodeMorphParam = apvts.getParameter("diode_morph");
+        if (diodeMorphParam) {
+            float value = diodeMorphParam->getValue();
+            diodeMorph2Slider.setValue(value, juce::dontSendNotification);
+        }
+    }
+
+    // Enable/disable diode2 based on link state
+    diodeMorph2Slider.setEnabled(!isLinked);
+    diodeMorph2Label.setEnabled(!isLinked);
 }
 
 void MT2PluginEditor::paint(juce::Graphics& g)
