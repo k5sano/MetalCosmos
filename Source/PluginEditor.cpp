@@ -5,7 +5,7 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
       processorRef(p),
       apvts(p.apvts)
 {
-    // Setup clip mode combo box first
+    // Setup clip mode combo box
     clipModeCombo.addItem("Diode", 1);
     clipModeCombo.addItem("Tanh", 2);
     clipModeCombo.addItem("Atan", 3);
@@ -14,6 +14,13 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
     clipModeCombo.addItem("Foldback", 6);
     clipModeCombo.setSelectedId(1);
     addAndMakeVisible(clipModeCombo);
+
+    // Setup sat position combo box
+    satPosCombo.addItem("Pre", 1);
+    satPosCombo.addItem("Post", 2);
+    satPosCombo.addItem("Off", 3);
+    satPosCombo.setSelectedId(2);  // Default: Post
+    addAndMakeVisible(satPosCombo);
 
     // Setup all sliders
     for (auto* slider : std::vector<juce::Slider*>{
@@ -33,7 +40,7 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
     for (auto* label : std::vector<juce::Label*>{
          &distLabel, &levelLabel, &diodeMorphLabel, &diodeMorph2Label,
          &eqLowLabel, &eqMidLabel, &eqMidFreqLabel, &eqMidQLabel, &eqHighLabel,
-         &clipModeLabel, &outSatLabel})
+         &clipModeLabel, &satPosLabel, &outSatLabel})
     {
         label->setJustificationType(juce::Justification::centred);
         label->setFont(juce::Font(12.0f));
@@ -52,6 +59,7 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
     eqMidQAttachment    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "eq_mid_q", eqMidQSlider);
     eqHighAttachment    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "eq_high", eqHighSlider);
     clipModeAttachment  = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(apvts, "clip_mode", clipModeCombo);
+    satPosAttachment    = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(apvts, "sat_pos", satPosCombo);
     outSatAttachment    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "out_sat", outSatSlider);
 
     setSize(500, 400);
@@ -132,8 +140,10 @@ void MT2PluginEditor::resized()
     // Output section (bottom)
     auto outArea = area.removeFromTop(60);
     int comboY = outArea.getY() + 5;
-    clipModeLabel.setBounds(100, comboY, 80, 20);
-    clipModeCombo.setBounds(100, comboY + 20, 120, 25);
-    outSatLabel.setBounds(300, comboY, 80, 20);
-    outSatSlider.setBounds(300, comboY, knobWidth, knobHeight);
+    clipModeLabel.setBounds(30, comboY, 60, 20);
+    clipModeCombo.setBounds(30, comboY + 20, 100, 25);
+    satPosLabel.setBounds(150, comboY, 60, 20);
+    satPosCombo.setBounds(150, comboY + 20, 100, 25);
+    outSatLabel.setBounds(270, comboY, 60, 20);
+    outSatSlider.setBounds(270, comboY, knobWidth, knobHeight);
 }

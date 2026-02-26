@@ -46,6 +46,7 @@ public:
     // Parameter pointers (for fast access)
     std::atomic<float>* clipMode = nullptr;
     std::atomic<float>* outSat = nullptr;
+    std::atomic<float>* satPos = nullptr;
 
 private:
     // DSP modules

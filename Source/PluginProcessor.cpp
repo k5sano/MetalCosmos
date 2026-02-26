@@ -2,6 +2,43 @@
 #include "PluginEditor.h"
 #include <cmath>
 
+namespace {
+    // Helper: Apply tanh saturation to double buffer
+    void applySaturationDouble(juce::AudioBuffer<double>& buf, float amount)
+    {
+        if (amount < 0.01f) return;
+        const int numChannels = buf.getNumChannels();
+        const int numSamples = buf.getNumSamples();
+        double drive = 1.0 + static_cast<double>(amount) * 3.0;
+        double norm = 1.0 / std::tanh(drive);
+
+        for (int ch = 0; ch < numChannels; ++ch) {
+            auto* data = buf.getWritePointer(ch);
+            for (int i = 0; i < numSamples; ++i) {
+                data[i] = std::tanh(data[i] * drive) * norm;
+            }
+        }
+    }
+
+    // Helper: Apply tanh saturation to float buffer
+    void applySaturationFloat(juce::AudioBuffer<float>& buf, float amount)
+    {
+        if (amount < 0.01f) return;
+        const int numChannels = buf.getNumChannels();
+        const int numSamples = buf.getNumSamples();
+        double drive = 1.0 + static_cast<double>(amount) * 3.0;
+        double norm = 1.0 / std::tanh(drive);
+
+        for (int ch = 0; ch < numChannels; ++ch) {
+            auto* data = buf.getWritePointer(ch);
+            for (int i = 0; i < numSamples; ++i) {
+                double driven = static_cast<double>(data[i]) * drive;
+                data[i] = static_cast<float>(std::tanh(driven) * norm);
+            }
+        }
+    }
+}
+
 MT2Plugin::MT2Plugin()
     : AudioProcessor(BusesProperties()
           .withInput("Input", juce::AudioChannelSet::stereo(), true)
@@ -10,6 +47,7 @@ MT2Plugin::MT2Plugin()
 {
     clipMode = apvts.getRawParameterValue("clip_mode");
     outSat = apvts.getRawParameterValue("out_sat");
+    satPos = apvts.getRawParameterValue("sat_pos");
 }
 
 void MT2Plugin::prepareToPlay(double sampleRate, int maxSamplesPerBlock)
@@ -64,6 +102,10 @@ void MT2Plugin::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&
     // Map level parameter (0.0~1.0) to output level
     float levelValue = levelParam ? levelParam->load() : 0.5f;
     double outputLevel = levelValue * 2.0;
+
+    // Saturator position and amount
+    int satPosition = (satPos != nullptr) ? (int)satPos->load() : 1;  // 0=Pre, 1=Post, 2=Off
+    float satAmount = (outSat != nullptr) ? outSat->load() : 0.0f;
 
     // Update smoothed values
     mSmoothedGain.setTargetValue(gain);
@@ -128,6 +170,11 @@ void MT2Plugin::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&
         }
     }
 
+    // --- Pre: Apply saturation BEFORE GainStage ---
+    if (satPosition == 0 && satAmount > 0.01f) {
+        applySaturationDouble(mBufferDouble, satAmount);
+    }
+
     // Process DSP (no oversampling for now)
     for (int sample = 0; sample < numSamples; ++sample) {
         double level = mSmoothedLevel.getNextValue();
@@ -168,21 +215,11 @@ void MT2Plugin::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&
         }
     }
 
-    // Output Saturator (final stage tanh) - after ToneStack, before output level
-    float satAmount = (outSat != nullptr) ? outSat->load() : 0.0f;
-    if (satAmount > 0.01f) {
-        double drive = 1.0 + satAmount * 3.0;  // 1.0 to 4.0 range
-        double normFactor = std::tanh(drive);
-
-        for (int ch = 0; ch < numChannels; ++ch) {
-            auto* data = buffer.getWritePointer(ch);
-            for (int i = 0; i < numSamples; ++i) {
-                double driven = static_cast<double>(data[i]) * drive;
-                double saturated = std::tanh(driven) / normFactor;
-                data[i] = static_cast<float>(saturated);
-            }
-        }
+    // --- Post: Apply saturation AFTER ToneStack (to float buffer) ---
+    if (satPosition == 1 && satAmount > 0.01f) {
+        applySaturationFloat(buffer, satAmount);
     }
+    // satPosition == 2 (Off): No saturation applied
 }
 
 juce::AudioProcessorEditor* MT2Plugin::createEditor()

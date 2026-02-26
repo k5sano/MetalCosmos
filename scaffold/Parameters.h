@@ -74,6 +74,19 @@ namespace MT2Params {
                 })
         ));
 
+        // Saturator Position: tanh サチュレーターの配置 (0=Pre, 1=Post, 2=Off)
+        params.push_back(std::make_unique<juce::AudioParameterFloat>(
+            juce::ParameterID{"sat_pos", 1},
+            "Sat Position",
+            juce::NormalisableRange<float>(0.0f, 2.0f, 1.0f),
+            1.0f,
+            juce::AudioParameterFloatAttributes{}
+                .withStringFromValueFunction([](float v, int) {
+                    const char* names[] = {"Pre", "Post", "Off"};
+                    return juce::String(names[std::clamp((int)v, 0, 2)]);
+                })
+        ));
+
         return { params.begin(), params.end() };
     }
 

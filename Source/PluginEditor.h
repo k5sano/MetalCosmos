@@ -30,6 +30,7 @@ private:
 
     // Output section
     juce::ComboBox clipModeCombo;
+    juce::ComboBox satPosCombo;
     juce::Slider outSatSlider;
 
     // Attachments (connect UI to parameters)
@@ -44,6 +45,7 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> eqMidQAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> eqHighAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> clipModeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> satPosAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> outSatAttachment;
 
     // Labels
@@ -57,6 +59,7 @@ private:
     juce::Label eqMidQLabel{"Q", "Q"};
     juce::Label eqHighLabel{"High", "High"};
     juce::Label clipModeLabel{"Clip", "Clip Mode"};
+    juce::Label satPosLabel{"Pos", "Sat Pos"};
     juce::Label outSatLabel{"Sat", "Sat"};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MT2PluginEditor)
