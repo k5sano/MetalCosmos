@@ -104,7 +104,7 @@ void MT2Plugin::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&
     double outputLevel = levelValue * 2.0;
 
     // Saturator position and amount
-    int satPosition = (satPos != nullptr) ? (int)satPos->load() : 1;  // 0=Pre, 1=Post, 2=Off
+    int satPosition = (satPos != nullptr) ? (int)std::round(satPos->load()) : 1;  // 0=Pre, 1=Post, 2=Off
     float satAmount = (outSat != nullptr) ? outSat->load() : 0.0f;
 
     // Update smoothed values
@@ -130,7 +130,7 @@ void MT2Plugin::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer&
     mGainStage.setGain(mSmoothedGain.getNextValue());
 
     // Set clip mode
-    int mode = (clipMode != nullptr) ? (int)clipMode->load() : 0;
+    int mode = (clipMode != nullptr) ? (int)std::round(clipMode->load()) : 0;
     mGainStage.setClipMode(mode);
 
     // Update EQ coefficients (once per block)

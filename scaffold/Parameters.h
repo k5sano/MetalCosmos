@@ -17,14 +17,32 @@ namespace MT2Params {
 
         params.push_back(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"diode_morph", 1}, "Diode Morph",
-            juce::NormalisableRange<float>(0.0f, 1.0f, 0.001f), 0.0f));
+            juce::NormalisableRange<float>(0.0f, 1.0f, 0.001f), 0.0f,
+            juce::AudioParameterFloatAttributes{}
+                .withStringFromValueFunction([](float v, int) {
+                    if (v < 0.125f) return juce::String("Si");
+                    if (v < 0.375f) return juce::String("Ge");
+                    if (v < 0.625f) return juce::String("LED");
+                    if (v < 0.875f) return juce::String("Schottky");
+                    return juce::String("NoClip");
+                })
+        ));
 
         params.push_back(std::make_unique<juce::AudioParameterBool>(
             juce::ParameterID{"diode_link", 1}, "Diode Link", true));
 
         params.push_back(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"diode_morph_2", 1}, "Diode Morph 2",
-            juce::NormalisableRange<float>(0.0f, 1.0f, 0.001f), 0.0f));
+            juce::NormalisableRange<float>(0.0f, 1.0f, 0.001f), 0.0f,
+            juce::AudioParameterFloatAttributes{}
+                .withStringFromValueFunction([](float v, int) {
+                    if (v < 0.125f) return juce::String("Si");
+                    if (v < 0.375f) return juce::String("Ge");
+                    if (v < 0.625f) return juce::String("LED");
+                    if (v < 0.875f) return juce::String("Schottky");
+                    return juce::String("NoClip");
+                })
+        ));
 
         params.push_back(std::make_unique<juce::AudioParameterFloat>(
             juce::ParameterID{"eq_low", 1}, "Low",

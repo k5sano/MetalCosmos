@@ -29,8 +29,8 @@ private:
     juce::Slider eqHighSlider;
 
     // Output section
-    juce::ComboBox clipModeCombo;
-    juce::ComboBox satPosCombo;
+    juce::Slider clipModeSlider;
+    juce::Slider satPosSlider;
     juce::Slider outSatSlider;
 
     // Attachments (connect UI to parameters)
@@ -44,8 +44,8 @@ private:
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> eqMidFreqAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> eqMidQAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> eqHighAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> clipModeAttachment;
-    std::unique_ptr<juce::AudioProcessorValueTreeState::ComboBoxAttachment> satPosAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> clipModeAttachment;
+    std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> satPosAttachment;
     std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> outSatAttachment;
 
     // Labels

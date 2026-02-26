@@ -5,23 +5,6 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
       processorRef(p),
       apvts(p.apvts)
 {
-    // Setup clip mode combo box
-    clipModeCombo.addItem("Diode", 1);
-    clipModeCombo.addItem("Tanh", 2);
-    clipModeCombo.addItem("Atan", 3);
-    clipModeCombo.addItem("Hard", 4);
-    clipModeCombo.addItem("Asymmetric", 5);
-    clipModeCombo.addItem("Foldback", 6);
-    clipModeCombo.setSelectedId(1);
-    addAndMakeVisible(clipModeCombo);
-
-    // Setup sat position combo box
-    satPosCombo.addItem("Pre", 1);
-    satPosCombo.addItem("Post", 2);
-    satPosCombo.addItem("Off", 3);
-    satPosCombo.setSelectedId(2);  // Default: Post
-    addAndMakeVisible(satPosCombo);
-
     // Setup all sliders
     for (auto* slider : std::vector<juce::Slider*>{
          &distSlider, &levelSlider, &diodeMorphSlider, &diodeMorph2Slider,
@@ -33,7 +16,49 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
         addAndMakeVisible(slider);
     }
 
+    // Clip Mode and Sat Position - discrete sliders with value display
+    for (auto* slider : std::vector<juce::Slider*>{&clipModeSlider, &satPosSlider})
+    {
+        slider->setSliderStyle(juce::Slider::RotaryHorizontalVerticalDrag);
+        slider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 70, 20);
+        addAndMakeVisible(slider);
+    }
+
+    // Set up value display for discrete sliders
+    clipModeSlider.textFromValueFunction = [](double value) {
+        int v = (int)std::round(value);
+        const char* names[] = {"Diode", "Tanh", "Atan", "Hard", "Asym", "Fold"};
+        if (v >= 0 && v < 6) return juce::String(names[v]);
+        return juce::String((int)value);
+    };
+    clipModeSlider.setValue(0.0);
+
+    satPosSlider.textFromValueFunction = [](double value) {
+        int v = (int)std::round(value);
+        const char* names[] = {"Pre", "Post", "Off"};
+        if (v >= 0 && v < 3) return juce::String(names[v]);
+        return juce::String((int)value);
+    };
+    satPosSlider.setValue(1.0);
+
+    outSatSlider.textFromValueFunction = [](double value) {
+        if (value < 0.01) return juce::String("OFF");
+        return juce::String((int)(value * 100)) + "%";
+    };
+
+    // Diode morph display
+    auto diodeTextFromValue = [](double value) {
+        if (value < 0.125) return juce::String("Si");
+        if (value < 0.375) return juce::String("Ge");
+        if (value < 0.625) return juce::String("LED");
+        if (value < 0.875) return juce::String("Sch");
+        return juce::String("Off");
+    };
+    diodeMorphSlider.textFromValueFunction = diodeTextFromValue;
+    diodeMorph2Slider.textFromValueFunction = diodeTextFromValue;
+
     // Toggle button
+    diodeLinkButton.setButtonText("Link");
     addAndMakeVisible(diodeLinkButton);
 
     // Labels
@@ -43,7 +68,7 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
          &clipModeLabel, &satPosLabel, &outSatLabel})
     {
         label->setJustificationType(juce::Justification::centred);
-        label->setFont(juce::Font(12.0f));
+        label->setFont(juce::Font(11.0f));
         addAndMakeVisible(label);
     }
 
@@ -58,11 +83,11 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
     eqMidFreqAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "eq_mid_freq", eqMidFreqSlider);
     eqMidQAttachment    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "eq_mid_q", eqMidQSlider);
     eqHighAttachment    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "eq_high", eqHighSlider);
-    clipModeAttachment  = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(apvts, "clip_mode", clipModeCombo);
-    satPosAttachment    = std::make_unique<juce::AudioProcessorValueTreeState::ComboBoxAttachment>(apvts, "sat_pos", satPosCombo);
+    clipModeAttachment  = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "clip_mode", clipModeSlider);
+    satPosAttachment    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "sat_pos", satPosSlider);
     outSatAttachment    = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(apvts, "out_sat", outSatSlider);
 
-    setSize(500, 400);
+    setSize(540, 460);
 }
 
 void MT2PluginEditor::paint(juce::Graphics& g)
@@ -71,26 +96,27 @@ void MT2PluginEditor::paint(juce::Graphics& g)
 
     g.setColour(juce::Colours::white);
     g.setFont(juce::Font(16.0f, juce::Font::bold));
-    g.drawText("MetalCosmos", 0, 10, getWidth(), 30, juce::Justification::centred);
+    g.drawText("MetalCosmos", 0, 8, getWidth(), 25, juce::Justification::centred);
 
     // Section dividers
     g.setColour(juce::Colours::lightgrey);
-    g.drawHorizontalLine(185, 0, getWidth());
+    g.drawHorizontalLine(165, 0, getWidth());  // After Dist section
+    g.drawHorizontalLine(295, 0, getWidth());  // After EQ section
 }
 
 void MT2PluginEditor::resized()
 {
     auto area = getLocalBounds();
-    area.removeFromTop(40); // title space
+    area.removeFromTop(35); // title space
 
     int knobWidth = 70;
     int knobHeight = 85;
-    int gap = 10;
-    int labelHeight = 20;
+    int gap = 8;
+    int labelHeight = 18;
 
-    // Distortion section (top)
-    auto distArea = area.removeFromTop(145);
-    auto distKnobs = distArea.reduced(10);
+    // Distortion section (top) - 5 items: 3 knobs + button + 1 knob
+    auto distArea = area.removeFromTop(130);
+    auto distKnobs = distArea.reduced(8);
 
     int xPos = distKnobs.getX();
     int yPos = distKnobs.getY();
@@ -107,13 +133,14 @@ void MT2PluginEditor::resized()
     diodeMorphLabel.setBounds(xPos, yPos + knobHeight, knobWidth, labelHeight);
     xPos += knobWidth + gap;
 
-    diodeLinkButton.setBounds(xPos, yPos + 30, 60, 25);
-    diodeMorph2Slider.setBounds(xPos + 70, yPos, knobWidth, knobHeight);
-    diodeMorph2Label.setBounds(xPos + 70, yPos + knobHeight, knobWidth, labelHeight);
+    // Link button + Diode2
+    diodeLinkButton.setBounds(xPos, yPos + 32, 50, 22);
+    diodeMorph2Slider.setBounds(xPos + 55, yPos, knobWidth, knobHeight);
+    diodeMorph2Label.setBounds(xPos + 55, yPos + knobHeight, knobWidth, labelHeight);
 
-    // EQ section (middle)
-    auto eqArea = area.removeFromTop(145);
-    auto eqKnobs = eqArea.reduced(10);
+    // EQ section (middle) - 5 knobs
+    auto eqArea = area.removeFromTop(130);
+    auto eqKnobs = eqArea.reduced(8);
 
     xPos = eqKnobs.getX();
     yPos = eqKnobs.getY();
@@ -137,13 +164,21 @@ void MT2PluginEditor::resized()
     eqHighSlider.setBounds(xPos, yPos, knobWidth, knobHeight);
     eqHighLabel.setBounds(xPos, yPos + knobHeight, knobWidth, labelHeight);
 
-    // Output section (bottom)
-    auto outArea = area.removeFromTop(60);
-    int comboY = outArea.getY() + 5;
-    clipModeLabel.setBounds(30, comboY, 60, 20);
-    clipModeCombo.setBounds(30, comboY + 20, 100, 25);
-    satPosLabel.setBounds(150, comboY, 60, 20);
-    satPosCombo.setBounds(150, comboY + 20, 100, 25);
-    outSatLabel.setBounds(270, comboY, 60, 20);
-    outSatSlider.setBounds(270, comboY, knobWidth, knobHeight);
+    // Output section (bottom) - 3 knobs
+    auto outArea = area.removeFromTop(130);
+    auto outKnobs = outArea.reduced(8);
+
+    xPos = outKnobs.getX() + 35;
+    yPos = outKnobs.getY() + 5;
+
+    clipModeSlider.setBounds(xPos, yPos, knobWidth, knobHeight);
+    clipModeLabel.setBounds(xPos, yPos + knobHeight, knobWidth, labelHeight);
+    xPos += knobWidth + gap;
+
+    satPosSlider.setBounds(xPos, yPos, knobWidth, knobHeight);
+    satPosLabel.setBounds(xPos, yPos + knobHeight, knobWidth, labelHeight);
+    xPos += knobWidth + gap;
+
+    outSatSlider.setBounds(xPos, yPos, knobWidth, knobHeight);
+    outSatLabel.setBounds(xPos, yPos + knobHeight, knobWidth, labelHeight);
 }
