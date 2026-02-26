@@ -19,5 +19,5 @@ private:
     DiodeFeedbackClipper mStage1;
     DiodeFeedbackClipper mStage2;
     OnePoleFilter mInterstageHPF;
-    OnePoleFilter mInterStageLPF;
+    OnePoleFilter mInterstageLPF;
 };

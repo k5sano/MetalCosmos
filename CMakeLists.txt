@@ -11,7 +11,7 @@ juce_add_plugin(MetalCosmos
     PLUGIN_MANUFACTURER_CODE K5sn
     MANUFACTURER_NAME "K5SANO"
     PLUGIN_CODE Mt2p
-    FORMATS VST3 Standalone
+    FORMATS VST3 AU Standalone
     PRODUCT_NAME "MetalCosmos"
     COMPANY_NAME "K5SANO"
     COMPANY_WEBSITE "https://github.com/k5sano"
@@ -29,11 +29,19 @@ juce_generate_juce_header(MetalCosmos)
 target_sources(MetalCosmos PRIVATE
     Source/PluginProcessor.cpp
     Source/PluginEditor.cpp
+    Source/DSP/OnePoleFilter.cpp
+    Source/DSP/BiquadFilter.cpp
+    Source/DSP/DiodeFeedbackClipper.cpp
+    Source/DSP/DiodeMorpher.cpp
+    Source/DSP/MT2GainStage.cpp
+    Source/DSP/MT2ToneStack.cpp
 )
 
 target_include_directories(MetalCosmos PRIVATE
     Source
+    Source/DSP
     scaffold
+    scaffold/DSP
 )
 
 target_compile_features(MetalCosmos PRIVATE cxx_std_17)

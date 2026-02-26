@@ -19,6 +19,9 @@ public:
     /** When true, bypass diode clipping: Vout = Vin * Gain */
     void setBypass(bool shouldBypass);
 
+    /** Set feedback resistor value (ohms) */
+    void setRf(double rf);
+
 private:
     double mIs = 2.52e-9;    // Saturation current
     double mN  = 1.7;         // Ideality factor
