@@ -7,13 +7,6 @@ MT2PluginEditor::MT2PluginEditor(MT2Plugin& p)
     setSize(400, 300);
 }
 
-MT2PluginEditor::~MT2PluginEditor() {}
-
-void MT2PluginEditor::paint(juce::Graphics& g)
-{
-    g.fillAll(juce::Colours::darkgrey);
-}
-
 void MT2PluginEditor::resized()
 {
     genericEditor.setBounds(getLocalBounds());

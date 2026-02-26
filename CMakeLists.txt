@@ -4,6 +4,7 @@ project(MetalCosmos VERSION 1.0.0)
 # Universal Binary for macOS (arm64 + x86_64)
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 
+# JUCE はプロジェクトルートのサブディレクトリにソースが配置されている
 add_subdirectory(JUCE)
 
 juce_add_plugin(MetalCosmos
@@ -31,8 +32,8 @@ target_sources(MetalCosmos PRIVATE
 )
 
 target_include_directories(MetalCosmos PRIVATE
-    ${CMAKE_CURRENT_SOURCE_DIR}/Source
-    ${CMAKE_CURRENT_SOURCE_DIR}/scaffold
+    Source
+    scaffold
 )
 
 target_compile_features(MetalCosmos PRIVATE cxx_std_17)
@@ -41,10 +42,14 @@ if(MSVC)
     target_compile_definitions(MetalCosmos PRIVATE _USE_MATH_DEFINES)
 endif()
 
-# Ignore VST2/VST3 parameter ID mismatch warning (VST3-only release)
+# VST3-only release: ignore VST2/VST3 parameter ID mismatch warning
 target_compile_definitions(MetalCosmos PRIVATE
     JUCE_IGNORE_VST3_MISMATCHED_PARAMETER_ID_WARNING=1
 )
+
+# ===== 禁止されている compile_definitions =====
+# JUCE_VST3_CAN_REPLACE_VST2 禁止
+# JUCE_FORCE_USE_LEGACY_PARAM_IDS 禁止
 
 target_link_libraries(MetalCosmos
     PRIVATE
